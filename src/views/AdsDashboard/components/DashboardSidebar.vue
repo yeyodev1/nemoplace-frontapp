@@ -1,13 +1,8 @@
 <script setup lang="ts">
 
 
-const props = defineProps<{
-  activeTab?: string;
-}>();
-
 const emit = defineEmits<{
   (e: 'logout'): void;
-  (e: 'change-tab', tab: string): void;
 }>();
 </script>
 
@@ -20,22 +15,22 @@ const emit = defineEmits<{
       </div>
     </div>
     <nav class="sidebar-nav">
-      <a href="javascript:void(0)" class="nav-item" :class="{ active: activeTab === 'summary' }" @click="emit('change-tab', 'summary')">
+      <router-link to="/dashboard" class="nav-item" exact-active-class="active">
         <span class="icon"><i class="fa-solid fa-chart-pie"></i></span>
         Resumen
-      </a>
-      <a href="javascript:void(0)" class="nav-item" :class="{ active: activeTab === 'campaigns' }" @click="emit('change-tab', 'campaigns')">
+      </router-link>
+      <router-link to="/dashboard/campaigns" class="nav-item" exact-active-class="active">
         <span class="icon"><i class="fa-solid fa-chart-line"></i></span>
         Campañas
-      </a>
-      <a href="javascript:void(0)" class="nav-item" :class="{ active: activeTab === 'conversations' }" @click="emit('change-tab', 'conversations')">
+      </router-link>
+      <router-link to="/dashboard/conversations" class="nav-item" exact-active-class="active">
         <span class="icon"><i class="fa-regular fa-comments"></i></span>
         Conversaciones
-      </a>
-      <a href="javascript:void(0)" class="nav-item" :class="{ active: activeTab === 'settings' }" @click="emit('change-tab', 'settings')">
+      </router-link>
+      <router-link to="/dashboard/settings" class="nav-item" exact-active-class="active">
         <span class="icon"><i class="fa-solid fa-gear"></i></span>
         Configuración
-      </a>
+      </router-link>
     </nav>
     <div class="sidebar-footer">
       <div class="user-profile">

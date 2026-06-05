@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import { metaApi } from '@/services/meta.api';
 import { salesApi } from '@/services/sales.api';
 import { useMetaAds } from '@/composables/useMetaAds';
@@ -9,15 +9,16 @@ import {
   DashboardSidebar,
   DashboardTopbar,
   ConnectMetaBanner,
-  DashboardStatsGrid,
-  ActiveCampaignsList,
   PagePickerModal,
   AdAccountPickerModal
 } from './components';
 
+import RegisterSaleModal from './components/RegisterSaleModal.vue';
+
 // Replace with a real workspace ID from your state management (e.g. Pinia)
 const WORKSPACE_ID = '60d5ecb8b392d70015345678'; 
 const router = useRouter();
+const route = useRoute();
 
 const isAuthenticated = ref(false);
 const isLoading = ref(false);
@@ -29,7 +30,8 @@ const salesStats = ref<any>({ totalRevenue: 0, totalConversations: 0, totalSales
 const pageName = ref<string | undefined>(undefined);
 const pagePictureUrl = ref<string | undefined>(undefined);
 const selectedDatePreset = ref('last_7d');
-const activeTab = ref('summary');
+
+const isRegisterModalOpen = ref(false);
 
 const {
   isLoggingIn,
@@ -99,12 +101,33 @@ const handleLogout = () => {
   router.push('/login');
 };
 
+const handleRegisterSale = async (payload: any) => {
+  try {
+    await salesApi.createSale({
+      workspaceId: WORKSPACE_ID,
+      ...payload
+    });
+    isRegisterModalOpen.value = false;
+    // Recargar los datos del dashboard para reflejar la nueva venta
+    await fetchDashboardData();
+  } catch (error) {
+    console.error('Error registrando la venta:', error);
+    alert('Hubo un error al registrar la venta. Por favor intenta nuevamente.');
+  }
+};
+
 onMounted(() => {
   fetchDashboardData();
   initSDK();
 });
 
 watch(selectedDatePreset, () => {
+  if (isAuthenticated.value) {
+    fetchDashboardData();
+  }
+});
+
+watch(() => route.path, () => {
   if (isAuthenticated.value) {
     fetchDashboardData();
   }
@@ -122,7 +145,7 @@ const overallRoas = computed(() => {
 
 <template>
   <div class="dashboard-layout">
-    <DashboardSidebar :activeTab="activeTab" @change-tab="activeTab = $event" @logout="handleLogout" />
+    <DashboardSidebar @logout="handleLogout" />
 
     <main class="main-content">
       <DashboardTopbar 
@@ -144,49 +167,25 @@ const overallRoas = computed(() => {
         </div>
 
         <template v-else-if="isAuthenticated">
-          <!-- Pestaña: Resumen -->
-          <div v-if="activeTab === 'summary'">
-            <DashboardStatsGrid 
-              :totalSpend="totalSpend"
-              :totalRevenue="salesStats.totalRevenue"
-              :overallRoas="overallRoas"
-              :totalConversations="salesStats.totalConversations"
-            />
-            <ActiveCampaignsList :insights="insights" />
-          </div>
-
-          <!-- Pestaña: Campañas -->
-          <div v-else-if="activeTab === 'campaigns'" class="placeholder-tab">
-            <div class="placeholder-content">
-              <i class="fa-solid fa-bullhorn placeholder-icon"></i>
-              <h2>Gestión de Campañas</h2>
-              <p>Aquí podrás crear, editar y gestionar tus campañas publicitarias detalladamente.</p>
-              <button class="primary-button" @click="activeTab = 'summary'">Volver al Resumen</button>
-            </div>
-          </div>
-
-          <!-- Pestaña: Conversaciones -->
-          <div v-else-if="activeTab === 'conversations'" class="placeholder-tab">
-            <div class="placeholder-content">
-              <i class="fa-regular fa-comments placeholder-icon"></i>
-              <h2>Bandeja de Conversaciones</h2>
-              <p>El sistema centralizado de chats se conectará aquí próximamente.</p>
-              <button class="primary-button" @click="activeTab = 'summary'">Volver al Resumen</button>
-            </div>
-          </div>
-
-          <!-- Pestaña: Configuración -->
-          <div v-else-if="activeTab === 'settings'" class="placeholder-tab">
-            <div class="placeholder-content">
-              <i class="fa-solid fa-gear placeholder-icon"></i>
-              <h2>Configuración del Espacio</h2>
-              <p>Ajustes de facturación, integraciones y permisos de usuario estarán aquí.</p>
-              <button class="primary-button" @click="activeTab = 'summary'">Volver al Resumen</button>
-            </div>
-          </div>
+          <router-view 
+            :totalSpend="totalSpend"
+            :totalRevenue="salesStats.totalRevenue"
+            :overallRoas="overallRoas"
+            :totalConversations="salesStats.totalConversations"
+            :insights="insights"
+            :sales="sales"
+            @open-register-modal="isRegisterModalOpen = true"
+          />
         </template>
       </div>
     </main>
+
+    <RegisterSaleModal 
+      :isOpen="isRegisterModalOpen"
+      :insights="insights"
+      @close="isRegisterModalOpen = false"
+      @submit="handleRegisterSale"
+    />
 
     <PagePickerModal 
       :isOpen="authStep === 'pick_page'"
@@ -208,6 +207,8 @@ const overallRoas = computed(() => {
 .dashboard-layout {
   display: flex;
   height: 100vh;
+  width: 100vw;
+  max-width: 100%;
   background-color: var(--bg-dark);
   color: var(--text-primary);
   font-family: 'Inter', sans-serif;
@@ -216,6 +217,7 @@ const overallRoas = computed(() => {
 
 .main-content {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   position: relative;
@@ -235,7 +237,9 @@ const overallRoas = computed(() => {
 
 .content-scroll {
   flex: 1;
+  min-width: 0;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 2rem 3rem;
 
   &::-webkit-scrollbar {
@@ -280,56 +284,6 @@ const overallRoas = computed(() => {
   }
   .content-scroll {
     padding: 1.5rem;
-  }
-}
-
-.placeholder-tab {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 60vh;
-  text-align: center;
-  
-  .placeholder-content {
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px dashed rgba(255, 255, 255, 0.1);
-    border-radius: var(--radius-lg);
-    padding: 4rem;
-    max-width: 500px;
-  }
-  
-  .placeholder-icon {
-    font-size: 3rem;
-    color: var(--color-primary);
-    margin-bottom: 1.5rem;
-    opacity: 0.8;
-  }
-  
-  h2 {
-    font-size: 1.5rem;
-    margin-bottom: 0.5rem;
-  }
-  
-  p {
-    color: var(--text-secondary);
-    margin-bottom: 2rem;
-    line-height: 1.5;
-  }
-
-  .primary-button {
-    background: var(--color-primary);
-    color: white;
-    border: none;
-    padding: 0.75rem 1.5rem;
-    border-radius: var(--radius-full);
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    
-    &:hover {
-      background: var(--color-primary-hover);
-      transform: translateY(-1px);
-    }
   }
 }
 </style>

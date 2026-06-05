@@ -9,9 +9,34 @@ const routes: Array<RouteRecordRaw> = [
   },
   {
     path: '/dashboard',
-    name: 'Dashboard',
     component: () => import('../views/AdsDashboard/index.vue'),
-    meta: { title: 'Dashboard', requiresAuth: true },
+    meta: { requiresAuth: true },
+    children: [
+      {
+        path: '',
+        name: 'DashboardSummary',
+        component: () => import('../views/AdsDashboard/tabs/SummaryTab.vue'),
+        meta: { title: 'Dashboard Resumen' }
+      },
+      {
+        path: 'campaigns',
+        name: 'DashboardCampaigns',
+        component: () => import('../views/AdsDashboard/tabs/CampaignsTab.vue'),
+        meta: { title: 'Campañas' }
+      },
+      {
+        path: 'conversations',
+        name: 'DashboardConversations',
+        component: () => import('../views/AdsDashboard/tabs/ConversationsTab.vue'),
+        meta: { title: 'Conversaciones' }
+      },
+      {
+        path: 'settings',
+        name: 'DashboardSettings',
+        component: () => import('../views/AdsDashboard/tabs/SettingsTab.vue'),
+        meta: { title: 'Configuración' }
+      }
+    ]
   },
   {
     path: '/login',
