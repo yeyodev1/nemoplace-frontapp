@@ -1,0 +1,335 @@
+<script setup lang="ts">
+import { ref, onMounted, computed, watch } from 'vue';
+import { useRouter } from 'vue-router';
+import { metaApi } from '@/services/meta.api';
+import { salesApi } from '@/services/sales.api';
+import { useMetaAds } from '@/composables/useMetaAds';
+
+import {
+  DashboardSidebar,
+  DashboardTopbar,
+  ConnectMetaBanner,
+  DashboardStatsGrid,
+  ActiveCampaignsList,
+  PagePickerModal,
+  AdAccountPickerModal
+} from './components';
+
+// Replace with a real workspace ID from your state management (e.g. Pinia)
+const WORKSPACE_ID = '60d5ecb8b392d70015345678'; 
+const router = useRouter();
+
+const isAuthenticated = ref(false);
+const isLoading = ref(false);
+
+const insights = ref<any[]>([]);
+const sales = ref<any[]>([]);
+const salesStats = ref<any>({ totalRevenue: 0, totalConversations: 0, totalSales: 0 });
+
+const pageName = ref<string | undefined>(undefined);
+const pagePictureUrl = ref<string | undefined>(undefined);
+const selectedDatePreset = ref('last_7d');
+const activeTab = ref('summary');
+
+const {
+  isLoggingIn,
+  authStep,
+  availablePages,
+  availableAdAccounts,
+  loginWithMeta,
+  selectPageAndSave,
+  selectAdAccountAndSave,
+  initSDK
+} = useMetaAds();
+
+const fetchDashboardData = async () => {
+  isLoading.value = true;
+  try {
+    const insightsRes = await metaApi.getAdsInsights(WORKSPACE_ID, { datePreset: selectedDatePreset.value });
+    insights.value = insightsRes.data.insights || [];
+    pageName.value = insightsRes.data.pageName || undefined;
+    pagePictureUrl.value = insightsRes.data.pagePictureUrl || undefined;
+    isAuthenticated.value = true;
+
+    const [salesRes, statsRes] = await Promise.all([
+      salesApi.getSalesByWorkspace(WORKSPACE_ID),
+      salesApi.getSalesStats(WORKSPACE_ID)
+    ]);
+    
+    sales.value = salesRes.data.sales || [];
+    salesStats.value = statsRes.data.stats || { totalRevenue: 0, totalConversations: 0, totalSales: 0 };
+    
+  } catch (error: any) {
+    if (error.response?.status === 400 && error.response?.data?.message?.includes('Meta integration')) {
+      isAuthenticated.value = false;
+    } else {
+      console.error("Failed to load dashboard data", error);
+    }
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+const handleMetaLogin = async () => {
+  await loginWithMeta(WORKSPACE_ID);
+};
+
+const handlePageSelection = async (page: any) => {
+  try {
+    await selectPageAndSave(WORKSPACE_ID, page);
+    // authStep moves to 'pick_ad_account' automatically inside useMetaAds
+  } catch (err) {
+    console.error('Page selection failed:', err);
+  }
+};
+
+const handleAdAccountSelection = async (account: any) => {
+  try {
+    await selectAdAccountAndSave(WORKSPACE_ID, account);
+    isAuthenticated.value = true;
+    authStep.value = 'idle'; // Close modal
+    await fetchDashboardData();
+  } catch (err) {
+    console.error('Ad Account selection failed:', err);
+  }
+};
+
+const handleLogout = () => {
+  localStorage.removeItem('token');
+  router.push('/login');
+};
+
+onMounted(() => {
+  fetchDashboardData();
+  initSDK();
+});
+
+watch(selectedDatePreset, () => {
+  if (isAuthenticated.value) {
+    fetchDashboardData();
+  }
+});
+
+const totalSpend = computed(() => {
+  return insights.value.reduce((acc, ad) => acc + Number(ad.spend || 0), 0);
+});
+
+const overallRoas = computed(() => {
+  if (totalSpend.value === 0) return 0;
+  return salesStats.value.totalRevenue / totalSpend.value;
+});
+</script>
+
+<template>
+  <div class="dashboard-layout">
+    <DashboardSidebar :activeTab="activeTab" @change-tab="activeTab = $event" @logout="handleLogout" />
+
+    <main class="main-content">
+      <DashboardTopbar 
+        v-model:selectedDate="selectedDatePreset"
+        :pageName="pageName"
+        :pagePictureUrl="pagePictureUrl"
+      />
+
+      <div class="content-scroll">
+        <ConnectMetaBanner 
+          v-if="!isAuthenticated && !isLoading" 
+          :isLoggingIn="isLoggingIn"
+          @connect="handleMetaLogin" 
+        />
+
+        <div v-if="isLoading" class="loading-state">
+          <div class="spinner"></div>
+          <p>Cargando datos...</p>
+        </div>
+
+        <template v-else-if="isAuthenticated">
+          <!-- Pestaña: Resumen -->
+          <div v-if="activeTab === 'summary'">
+            <DashboardStatsGrid 
+              :totalSpend="totalSpend"
+              :totalRevenue="salesStats.totalRevenue"
+              :overallRoas="overallRoas"
+              :totalConversations="salesStats.totalConversations"
+            />
+            <ActiveCampaignsList :insights="insights" />
+          </div>
+
+          <!-- Pestaña: Campañas -->
+          <div v-else-if="activeTab === 'campaigns'" class="placeholder-tab">
+            <div class="placeholder-content">
+              <i class="fa-solid fa-bullhorn placeholder-icon"></i>
+              <h2>Gestión de Campañas</h2>
+              <p>Aquí podrás crear, editar y gestionar tus campañas publicitarias detalladamente.</p>
+              <button class="primary-button" @click="activeTab = 'summary'">Volver al Resumen</button>
+            </div>
+          </div>
+
+          <!-- Pestaña: Conversaciones -->
+          <div v-else-if="activeTab === 'conversations'" class="placeholder-tab">
+            <div class="placeholder-content">
+              <i class="fa-regular fa-comments placeholder-icon"></i>
+              <h2>Bandeja de Conversaciones</h2>
+              <p>El sistema centralizado de chats se conectará aquí próximamente.</p>
+              <button class="primary-button" @click="activeTab = 'summary'">Volver al Resumen</button>
+            </div>
+          </div>
+
+          <!-- Pestaña: Configuración -->
+          <div v-else-if="activeTab === 'settings'" class="placeholder-tab">
+            <div class="placeholder-content">
+              <i class="fa-solid fa-gear placeholder-icon"></i>
+              <h2>Configuración del Espacio</h2>
+              <p>Ajustes de facturación, integraciones y permisos de usuario estarán aquí.</p>
+              <button class="primary-button" @click="activeTab = 'summary'">Volver al Resumen</button>
+            </div>
+          </div>
+        </template>
+      </div>
+    </main>
+
+    <PagePickerModal 
+      :isOpen="authStep === 'pick_page'"
+      :availablePages="availablePages"
+      @close="authStep = 'idle'"
+      @select-page="handlePageSelection"
+    />
+
+    <AdAccountPickerModal 
+      :isOpen="authStep === 'pick_ad_account'"
+      :availableAdAccounts="availableAdAccounts"
+      @close="authStep = 'idle'"
+      @select-account="handleAdAccountSelection"
+    />
+  </div>
+</template>
+
+<style lang="scss" scoped>
+.dashboard-layout {
+  display: flex;
+  height: 100vh;
+  background-color: var(--bg-dark);
+  color: var(--text-primary);
+  font-family: 'Inter', sans-serif;
+  overflow: hidden;
+}
+
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: -150px;
+    right: -150px;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.08) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+}
+
+.content-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 2rem 3rem;
+
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+  }
+}
+
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 6rem 0;
+  color: var(--text-secondary);
+  text-align: center;
+
+  .spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(255,255,255,0.1);
+    border-radius: 50%;
+    border-top-color: var(--color-primary);
+    animation: spin 1s ease-in-out infinite;
+    margin-bottom: 1.5rem;
+  }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 1024px) {
+  .dashboard-layout {
+    flex-direction: column;
+  }
+  .content-scroll {
+    padding: 1.5rem;
+  }
+}
+
+.placeholder-tab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 60vh;
+  text-align: center;
+  
+  .placeholder-content {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px dashed rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-lg);
+    padding: 4rem;
+    max-width: 500px;
+  }
+  
+  .placeholder-icon {
+    font-size: 3rem;
+    color: var(--color-primary);
+    margin-bottom: 1.5rem;
+    opacity: 0.8;
+  }
+  
+  h2 {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  p {
+    color: var(--text-secondary);
+    margin-bottom: 2rem;
+    line-height: 1.5;
+  }
+
+  .primary-button {
+    background: var(--color-primary);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--radius-full);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    
+    &:hover {
+      background: var(--color-primary-hover);
+      transform: translateY(-1px);
+    }
+  }
+}
+</style>

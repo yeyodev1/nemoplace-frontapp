@@ -51,7 +51,7 @@ class APIBase {
     return headers
   }
 
-  protected async get<T>(
+  protected async get<T = any>(
     endpoint: string,
     headers?: Record<string, string>,
     config?: AxiosRequestConfig,
@@ -74,7 +74,7 @@ class APIBase {
     }
   }
 
-  protected async post<T>(
+  protected async post<T = any>(
     endpoint: string,
     data: unknown,
     headers?: Record<string, string>,
@@ -105,7 +105,7 @@ class APIBase {
     }
   }
 
-  protected async put<T>(
+  protected async put<T = any>(
     endpoint: string,
     data: unknown,
     headers?: Record<string, string>,
@@ -129,7 +129,7 @@ class APIBase {
     }
   }
 
-  protected async patch<T>(
+  protected async patch<T = any>(
     endpoint: string,
     data: unknown,
     headers?: Record<string, string>,
@@ -153,7 +153,7 @@ class APIBase {
     }
   }
 
-  protected async delete<T>(
+  protected async delete<T = any>(
     endpoint: string,
     headers?: Record<string, string>,
     config?: AxiosRequestConfig,
