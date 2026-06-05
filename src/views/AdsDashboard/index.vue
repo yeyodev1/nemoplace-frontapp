@@ -15,10 +15,14 @@ import {
 
 import RegisterSaleModal from './components/RegisterSaleModal.vue';
 
-// Replace with a real workspace ID from your state management (e.g. Pinia)
-const WORKSPACE_ID = '60d5ecb8b392d70015345678'; 
+import { useUserStore } from '@/stores/user';
+
 const router = useRouter();
 const route = useRoute();
+const userStore = useUserStore();
+
+// Use dynamic workspace ID, fallback to mock only for extreme edge cases
+const WORKSPACE_ID = computed(() => userStore.workspaceId || '60d5ecb8b392d70015345678');
 
 const isAuthenticated = ref(false);
 const isLoading = ref(false);
@@ -49,15 +53,15 @@ const {
 const fetchDashboardData = async () => {
   isLoading.value = true;
   try {
-    const insightsRes = await metaApi.getAdsInsights(WORKSPACE_ID, { datePreset: selectedDatePreset.value });
+    const insightsRes = await metaApi.getAdsInsights(WORKSPACE_ID.value, { datePreset: selectedDatePreset.value });
     insights.value = insightsRes.data.insights || [];
     pageName.value = insightsRes.data.pageName || undefined;
     pagePictureUrl.value = insightsRes.data.pagePictureUrl || undefined;
     isAuthenticated.value = true;
 
     const [salesRes, statsRes] = await Promise.all([
-      salesApi.getSalesByWorkspace(WORKSPACE_ID),
-      salesApi.getSalesStats(WORKSPACE_ID)
+      salesApi.getSalesByWorkspace(WORKSPACE_ID.value),
+      salesApi.getSalesStats(WORKSPACE_ID.value)
     ]);
     
     sales.value = salesRes.data.sales || [];
@@ -75,12 +79,12 @@ const fetchDashboardData = async () => {
 };
 
 const handleMetaLogin = async () => {
-  await loginWithMeta(WORKSPACE_ID);
+  await loginWithMeta(WORKSPACE_ID.value);
 };
 
 const handlePageSelection = async (page: any) => {
   try {
-    await selectPageAndSave(WORKSPACE_ID, page);
+    await selectPageAndSave(WORKSPACE_ID.value, page);
     // authStep moves to 'pick_ad_account' automatically inside useMetaAds
   } catch (err) {
     console.error('Page selection failed:', err);
@@ -89,7 +93,7 @@ const handlePageSelection = async (page: any) => {
 
 const handleAdAccountSelection = async (account: any) => {
   try {
-    await selectAdAccountAndSave(WORKSPACE_ID, account);
+    await selectAdAccountAndSave(WORKSPACE_ID.value, account);
     isAuthenticated.value = true;
     authStep.value = 'idle'; // Close modal
     await fetchDashboardData();
@@ -106,7 +110,7 @@ const handleLogout = () => {
 const handleRegisterSale = async (payload: any) => {
   try {
     await salesApi.createSale({
-      workspaceId: WORKSPACE_ID,
+      workspaceId: WORKSPACE_ID.value,
       ...payload
     });
     isRegisterModalOpen.value = false;
@@ -120,7 +124,9 @@ const handleRegisterSale = async (payload: any) => {
 };
 
 onMounted(() => {
-  fetchDashboardData();
+  if (userStore.workspaceId) {
+    fetchDashboardData();
+  }
   initSDK();
 });
 
@@ -132,6 +138,12 @@ watch(selectedDatePreset, () => {
 
 watch(() => route.path, () => {
   if (isAuthenticated.value) {
+    fetchDashboardData();
+  }
+});
+
+watch(WORKSPACE_ID, (newId, oldId) => {
+  if (newId !== oldId) {
     fetchDashboardData();
   }
 });

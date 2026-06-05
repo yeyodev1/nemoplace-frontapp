@@ -27,6 +27,10 @@ const emit = defineEmits<{
         <span class="icon"><i class="fa-regular fa-comments"></i></span>
         Conversaciones
       </router-link>
+      <router-link to="/dashboard/sales" class="nav-item" exact-active-class="active">
+        <span class="icon"><i class="fa-solid fa-cash-register"></i></span>
+        Ventas
+      </router-link>
       <router-link to="/dashboard/settings" class="nav-item" exact-active-class="active">
         <span class="icon"><i class="fa-solid fa-gear"></i></span>
         Configuración

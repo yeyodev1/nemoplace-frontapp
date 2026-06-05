@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
+import AdAttributionSelect from './AdAttributionSelect.vue';
 
 const props = defineProps<{
   isOpen: boolean;
@@ -76,18 +77,7 @@ const handleSubmit = async () => {
         </div>
 
         <div class="form-group">
-          <label>Anuncio de Origen (Atribución)</label>
-          <div class="select-wrapper">
-            <select v-model="adId">
-              <option value="">Venta Orgánica / Sin Atribuir</option>
-              <optgroup label="Anuncios Activos en Meta">
-                <option v-for="ad in activeAds" :key="ad.ad_id" :value="ad.ad_id">
-                  {{ ad.campaign_name }} - {{ ad.ad_name }}
-                </option>
-              </optgroup>
-            </select>
-            <i class="fa-solid fa-chevron-down select-icon"></i>
-          </div>
+          <AdAttributionSelect v-model="adId" :options="activeAds" />
           <small class="hint">Selecciona el anuncio que generó esta venta para calcular el ROAS.</small>
         </div>
 
@@ -240,18 +230,7 @@ const handleSubmit = async () => {
   }
 }
 
-.select-wrapper {
-  position: relative;
-  
-  .select-icon {
-    position: absolute;
-    right: 1rem;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--text-secondary);
-    pointer-events: none;
-  }
-}
+
 
 .form-actions {
   display: flex;

@@ -35,6 +35,12 @@ const routes: Array<RouteRecordRaw> = [
         name: 'DashboardSettings',
         component: () => import('../views/AdsDashboard/tabs/SettingsTab.vue'),
         meta: { title: 'Configuración' }
+      },
+      {
+        path: 'sales',
+        name: 'DashboardSales',
+        component: () => import('../views/AdsDashboard/tabs/SalesTab.vue'),
+        meta: { title: 'Ventas' }
       }
     ]
   },
