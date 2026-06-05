@@ -2,8 +2,10 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { authApi } from '@/services/auth.api';
+import { useUserStore } from '@/stores/user';
 
 const router = useRouter();
+const userStore = useUserStore();
 
 const isLoading = ref(false);
 const errorMsg = ref('');
@@ -19,6 +21,17 @@ const handleSubmit = async () => {
   try {
     const res = await authApi.login({ email: form.value.email, password: form.value.password });
     localStorage.setItem('token', res.data.token);
+    
+    // Save to pinia and localstorage
+    if (res.data.user) {
+      userStore.setUser({
+        id: res.data.user.id,
+        name: res.data.user.name,
+        email: res.data.user.email,
+        workspaceId: res.data.user.workspaceId
+      });
+    }
+
     router.push('/');
   } catch (err: any) {
     errorMsg.value = err.response?.data?.message || 'Authentication failed. Please try again.';

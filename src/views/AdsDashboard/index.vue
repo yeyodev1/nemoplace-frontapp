@@ -32,6 +32,8 @@ const pagePictureUrl = ref<string | undefined>(undefined);
 const selectedDatePreset = ref('last_7d');
 
 const isRegisterModalOpen = ref(false);
+const isErrorModalOpen = ref(false);
+const errorMessage = ref('');
 
 const {
   isLoggingIn,
@@ -112,7 +114,8 @@ const handleRegisterSale = async (payload: any) => {
     await fetchDashboardData();
   } catch (error) {
     console.error('Error registrando la venta:', error);
-    alert('Hubo un error al registrar la venta. Por favor intenta nuevamente.');
+    errorMessage.value = 'Hubo un error al registrar la venta. Por favor intenta nuevamente.';
+    isErrorModalOpen.value = true;
   }
 };
 
@@ -200,6 +203,21 @@ const overallRoas = computed(() => {
       @close="authStep = 'idle'"
       @select-account="handleAdAccountSelection"
     />
+
+    <!-- Global Error Modal -->
+    <div v-if="isErrorModalOpen" class="modal-overlay" @click.self="isErrorModalOpen = false">
+      <div class="modal-content error-modal">
+        <div class="error-icon">
+          <i class="fa-solid fa-circle-xmark"></i>
+        </div>
+        <h3>Ha ocurrido un error</h3>
+        <p>{{ errorMessage }}</p>
+        
+        <div class="modal-actions centered">
+          <button type="button" class="primary-button outline" @click="isErrorModalOpen = false">Entendido</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -284,6 +302,63 @@ const overallRoas = computed(() => {
   }
   .content-scroll {
     padding: 1.5rem;
+  }
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(5px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content.error-modal {
+  background: var(--bg-dark);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+
+  .error-icon {
+    font-size: 3rem;
+    color: #ef4444;
+    margin-bottom: 1rem;
+  }
+
+  h3 {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  p {
+    color: var(--text-secondary);
+    margin-bottom: 2rem;
+  }
+
+  .primary-button {
+    background: transparent;
+    border: 1px solid #ef4444;
+    color: #ef4444;
+    padding: 0.75rem 2rem;
+    border-radius: var(--radius-full);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    
+    &:hover { 
+      background: rgba(239, 68, 68, 0.1);
+      transform: translateY(-2px); 
+    }
   }
 }
 </style>
