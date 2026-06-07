@@ -108,10 +108,10 @@ onUnmounted(() => {
             <span class="main-text">Anuncio: {{ selectedLabel.ad_name }}</span>
           </div>
           <button 
-            v-if="selectedLabel.creative_url" 
+            v-if="selectedLabel.ad_link || selectedLabel.creative_url" 
             class="view-ad-btn" 
-            @click.stop="openCreative(selectedLabel.creative_url)"
-            title="Ver creatividad del anuncio"
+            @click.stop="openCreative(selectedLabel.ad_link || selectedLabel.creative_url)"
+            title="Ver publicación del anuncio"
           >
             <i class="fa-solid fa-arrow-up-right-from-square"></i>
           </button>

@@ -8,8 +8,8 @@ const userStore = useUserStore();
 onMounted(async () => {
   userStore.hydrate();
   
-  // If we have a token but no full user data (or just missing workspaceId), fetch it
-  if (userStore.isAuthenticated && !userStore.workspaceId) {
+  // If we have a token but no full user data (missing name or workspaceId), fetch it
+  if (userStore.isAuthenticated && (!userStore.workspaceId || !userStore.name)) {
     try {
       const res = await authApi.me();
       if (res.data && res.data.user) {

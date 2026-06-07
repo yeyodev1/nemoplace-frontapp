@@ -1,22 +1,13 @@
 <script setup lang="ts">
-const props = defineProps({
-  pageName: { type: String, default: null },
-  pagePictureUrl: { type: String, default: null },
-  selectedDate: { type: String, default: 'last_7d' }
-});
+defineProps<{
+  pageName?: string;
+  pagePictureUrl?: string;
+  selectedDate: string;
+}>();
 
 const emit = defineEmits<{
   (e: 'update:selectedDate', value: string): void;
 }>();
-
-const dateOptions = [
-  { value: 'today', label: 'Hoy' },
-  { value: 'yesterday', label: 'Ayer' },
-  { value: 'last_7d', label: 'Últimos 7 días' },
-  { value: 'this_month', label: 'Este mes' },
-  { value: 'last_month', label: 'Mes pasado' },
-  { value: 'maximum', label: 'Histórico' }
-];
 </script>
 
 <template>
@@ -24,15 +15,15 @@ const dateOptions = [
     <div class="topbar-left">
       <h1 class="page-title">Dashboard</h1>
       <div class="date-filter">
-        <select 
-          :value="selectedDate" 
-          @change="emit('update:selectedDate', ($event.target as HTMLSelectElement).value)"
-          class="date-select"
-        >
-          <option v-for="opt in dateOptions" :key="opt.value" :value="opt.value">
-            {{ opt.label }}
-          </option>
-        </select>
+        <div class="date-input-wrapper">
+          <i class="fa-regular fa-calendar date-icon"></i>
+          <input 
+            type="month"
+            :value="selectedDate" 
+            @input="emit('update:selectedDate', ($event.target as HTMLInputElement).value)"
+            class="date-input"
+          />
+        </div>
       </div>
     </div>
     <div class="topbar-right">
@@ -63,38 +54,54 @@ const dateOptions = [
   .date-filter {
     margin-top: 0.5rem;
     
-    .date-select {
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      color: var(--text-secondary);
-      padding: 0.5rem 2.5rem 0.5rem 1rem;
-      border-radius: var(--radius-full);
-      font-family: inherit;
-      font-size: 0.85rem;
-      font-weight: 500;
-      cursor: pointer;
-      appearance: none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='rgba(255,255,255,0.5)'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: right 0.75rem center;
-      background-size: 1rem;
-      transition: all 0.2s ease;
+    .date-input-wrapper {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
 
-      &:hover {
-        background-color: rgba(255, 255, 255, 0.08);
-        color: var(--text-primary);
-        border-color: rgba(255, 255, 255, 0.2);
+      .date-icon {
+        position: absolute;
+        left: 1rem;
+        color: var(--text-secondary);
+        pointer-events: none;
       }
 
-      &:focus {
-        outline: none;
-        border-color: var(--color-primary);
-        box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
-      }
-      
-      option {
-        background: var(--bg-dark);
+      .date-input {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.1);
         color: var(--text-primary);
+        padding: 0.5rem 1rem 0.5rem 2.5rem;
+        border-radius: var(--radius-full);
+        font-family: inherit;
+        font-size: 0.85rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+
+        /* Estilos para el icono del calendario nativo en Webkit (Chrome/Safari) */
+        &::-webkit-calendar-picker-indicator {
+          filter: invert(1);
+          opacity: 0.5;
+          cursor: pointer;
+          transition: opacity 0.2s;
+          
+          &:hover {
+            opacity: 1;
+          }
+        }
+
+        &:hover {
+          background-color: rgba(255, 255, 255, 0.08);
+          border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        &:focus {
+          outline: none;
+          border-color: var(--color-primary);
+          box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+        }
       }
     }
   }

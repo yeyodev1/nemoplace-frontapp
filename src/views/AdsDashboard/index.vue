@@ -33,7 +33,8 @@ const salesStats = ref<any>({ totalRevenue: 0, totalConversations: 0, totalSales
 
 const pageName = ref<string | undefined>(undefined);
 const pagePictureUrl = ref<string | undefined>(undefined);
-const selectedDatePreset = ref('last_7d');
+const currentMonthStr = new Date().toISOString().slice(0, 7);
+const selectedMonth = ref(currentMonthStr);
 
 const isRegisterModalOpen = ref(false);
 const isErrorModalOpen = ref(false);
@@ -53,7 +54,12 @@ const {
 const fetchDashboardData = async () => {
   isLoading.value = true;
   try {
-    const insightsRes = await metaApi.getAdsInsights(WORKSPACE_ID.value, { datePreset: selectedDatePreset.value });
+    const [year, month] = selectedMonth.value.split('-');
+    const since = `${year}-${month}-01`;
+    const lastDay = new Date(Number(year), Number(month), 0).getDate();
+    const until = `${year}-${month}-${lastDay}`;
+
+    const insightsRes = await metaApi.getAdsInsights(WORKSPACE_ID.value, { since, until });
     insights.value = insightsRes.data.insights || [];
     pageName.value = insightsRes.data.pageName || undefined;
     pagePictureUrl.value = insightsRes.data.pagePictureUrl || undefined;
@@ -130,7 +136,7 @@ onMounted(() => {
   initSDK();
 });
 
-watch(selectedDatePreset, () => {
+watch(selectedMonth, () => {
   if (isAuthenticated.value) {
     fetchDashboardData();
   }
@@ -164,7 +170,7 @@ const overallRoas = computed(() => {
 
     <main class="main-content">
       <DashboardTopbar 
-        v-model:selectedDate="selectedDatePreset"
+        v-model:selectedDate="selectedMonth"
         :pageName="pageName"
         :pagePictureUrl="pagePictureUrl"
       />

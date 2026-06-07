@@ -1,5 +1,11 @@
 <script setup lang="ts">
+import { computed } from 'vue';
+import { useUserStore } from '@/stores/user';
 
+const userStore = useUserStore();
+
+const userName = computed(() => userStore.name || 'Administrador');
+const userAvatar = computed(() => `https://ui-avatars.com/api/?name=${encodeURIComponent(userName.value)}&background=6366f1&color=fff`);
 
 const emit = defineEmits<{
   (e: 'logout'): void;
@@ -38,9 +44,9 @@ const emit = defineEmits<{
     </nav>
     <div class="sidebar-footer">
       <div class="user-profile">
-        <img src="https://ui-avatars.com/api/?name=User&background=6366f1&color=fff" alt="User" class="avatar" />
+        <img :src="userAvatar" :alt="userName" class="avatar" />
         <div class="user-info">
-          <span class="user-name">Administrador</span>
+          <span class="user-name">{{ userName }}</span>
           <span class="user-role">Workspace Owner</span>
         </div>
       </div>
