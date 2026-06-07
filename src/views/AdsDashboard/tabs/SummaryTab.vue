@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import DashboardStatsGrid from '../components/DashboardStatsGrid.vue';
+import DashboardCharts from '../components/DashboardCharts.vue';
 import ActiveCampaignsList from '../components/ActiveCampaignsList.vue';
 
 const props = defineProps<{
@@ -31,6 +32,12 @@ const getAdName = (adId: string) => {
   const ad = props.insights.find(i => i.ad_id === adId);
   return ad ? ad.ad_name : 'Anuncio Desconocido';
 };
+
+const getAdLink = (adId: string) => {
+  if (!adId) return null;
+  const ad = props.insights.find(i => i.ad_id === adId);
+  return ad ? ad.ad_link : null;
+};
 </script>
 
 <template>
@@ -41,7 +48,10 @@ const getAdName = (adId: string) => {
       :overallRoas="overallRoas"
       :totalConversations="totalConversations"
     />
-    <ActiveCampaignsList :insights="insights" />
+    
+    <DashboardCharts :insights="insights" :sales="sales" />
+
+    <ActiveCampaignsList :insights="insights" :sales="sales" />
 
     <div class="sales-history-section">
       <div class="section-header">
@@ -87,6 +97,9 @@ const getAdName = (adId: string) => {
                   <i class="fa-solid fa-leaf" v-else></i>
                   {{ getAdName(sale.adId) }}
                 </span>
+                <a v-if="sale.adId && getAdLink(sale.adId)" :href="getAdLink(sale.adId)" target="_blank" class="table-ad-link" title="Ver Anuncio en Instagram/Facebook" @click.stop>
+                  <i class="fa-solid fa-external-link-alt"></i>
+                </a>
               </td>
               <td class="notes-cell">{{ sale.notes || '-' }}</td>
             </tr>
@@ -288,6 +301,27 @@ const getAdName = (adId: string) => {
     background: rgba(16, 185, 129, 0.1);
     color: var(--color-success);
     border-color: rgba(16, 185, 129, 0.2);
+  }
+}
+
+.table-ad-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  margin-left: 0.5rem;
+  vertical-align: middle;
+
+  &:hover {
+    background: rgba(99, 102, 241, 0.2);
+    color: var(--color-primary);
   }
 }
 </style>

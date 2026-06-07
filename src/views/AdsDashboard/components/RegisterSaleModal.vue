@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import AdAttributionSelect from './AdAttributionSelect.vue';
+import CustomDatePicker from './CustomDatePicker.vue';
 
 const props = defineProps<{
   isOpen: boolean;
@@ -27,9 +28,9 @@ const activeAds = computed(() => {
 
 const handleSubmit = async () => {
   if (!amount.value || Number(amount.value) <= 0) return;
-  
+
   isSubmitting.value = true;
-  
+
   const payload = {
     amount: Number(amount.value),
     customerName: customerName.value,
@@ -40,7 +41,7 @@ const handleSubmit = async () => {
   };
 
   emit('submit', payload);
-  
+
   // reset
   amount.value = '';
   customerName.value = '';
@@ -83,12 +84,12 @@ const handleSubmit = async () => {
 
         <div class="form-row">
           <div class="form-group">
-            <label>Conversaciones Previas</label>
-            <input type="number" v-model="conversationsGenerated" min="0" placeholder="¿Cuántos chats tomó?" />
+            <label>Mensajes Intercambiados</label>
+            <input type="number" v-model="conversationsGenerated" min="0" placeholder="Ej. 5 mensajes para cerrar" />
           </div>
           <div class="form-group">
             <label>Fecha de la Venta</label>
-            <input type="datetime-local" v-model="saleDate" required />
+            <CustomDatePicker v-model="saleDate" />
           </div>
         </div>
 
@@ -138,6 +139,7 @@ const handleSubmit = async () => {
   &.glass-effect {
     background: rgba(23, 23, 23, 0.85);
     backdrop-filter: blur(16px);
+    border-radius: 8px;
   }
 }
 
@@ -165,7 +167,7 @@ const handleSubmit = async () => {
     font-weight: 700;
     margin-bottom: 0.5rem;
   }
-  
+
   p {
     color: var(--text-secondary);
     font-size: 0.95rem;
@@ -195,7 +197,9 @@ const handleSubmit = async () => {
     color: var(--text-secondary);
   }
 
-  input, textarea, select {
+  input,
+  textarea,
+  select {
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.1);
     padding: 0.85rem 1rem;
@@ -212,12 +216,12 @@ const handleSubmit = async () => {
       box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
     }
   }
-  
+
   select {
     width: 100%;
     appearance: none;
     cursor: pointer;
-    
+
     option {
       background: var(--bg-dark);
       color: var(--text-primary);
@@ -229,8 +233,6 @@ const handleSubmit = async () => {
     color: var(--text-muted);
   }
 }
-
-
 
 .form-actions {
   display: flex;
@@ -279,8 +281,13 @@ const handleSubmit = async () => {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 @media (max-width: 768px) {

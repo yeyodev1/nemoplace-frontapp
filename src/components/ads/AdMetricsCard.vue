@@ -10,6 +10,10 @@ const props = defineProps({
     type: String,
     default: null,
   },
+  adLink: {
+    type: String,
+    default: null,
+  },
   spend: {
     type: Number,
     required: true,
@@ -57,7 +61,12 @@ const formattedRoas = computed(() => `${props.roas.toFixed(2)}x`);
     
     <div class="card-content">
       <div class="card-header">
-        <h3 class="ad-title">{{ adName }}</h3>
+        <h3 class="ad-title">
+          {{ adName }}
+          <a v-if="adLink" :href="adLink" target="_blank" title="Ver Anuncio en Instagram/Facebook" class="ad-link-btn" @click.stop>
+            <i class="fa-solid fa-external-link-alt"></i>
+          </a>
+        </h3>
       </div>
     <div class="card-body">
       <div class="metric-item">
@@ -174,6 +183,9 @@ const formattedRoas = computed(() => `${props.roas.toFixed(2)}x`);
 
 .card-header {
   .ad-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
     margin: 0;
     font-size: 1.15rem;
     font-weight: 600;
@@ -183,6 +195,26 @@ const formattedRoas = computed(() => `${props.roas.toFixed(2)}x`);
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
+
+    .ad-link-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-secondary);
+      font-size: 0.75rem;
+      transition: all 0.2s ease;
+      text-decoration: none;
+      vertical-align: middle;
+
+      &:hover {
+        background: rgba(99, 102, 241, 0.2);
+        color: var(--color-primary);
+      }
+    }
   }
 }
 

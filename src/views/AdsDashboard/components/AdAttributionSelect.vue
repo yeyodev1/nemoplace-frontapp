@@ -175,7 +175,12 @@ onUnmounted(() => {
             </div>
             <div class="texts">
               <span class="sub-text">Campaña: <strong>{{ ad.campaign_name }}</strong></span>
-              <span class="main-text">Anuncio: {{ ad.ad_name }}</span>
+              <span class="main-text">
+                Anuncio: {{ ad.ad_name }}
+                <a v-if="ad.ad_link" :href="ad.ad_link" target="_blank" title="Ver Anuncio en Instagram/Facebook" class="ad-link-btn" @click.stop>
+                  <i class="fa-solid fa-external-link-alt"></i>
+                </a>
+              </span>
             </div>
             <div class="check-indicator" v-if="modelValue === ad.ad_id">
               <i class="fa-solid fa-check"></i>
@@ -321,12 +326,34 @@ onUnmounted(() => {
   overflow: hidden;
 
   .main-text {
-    font-weight: 600;
     font-size: 0.95rem;
+    font-weight: 500;
     color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+
+    .ad-link-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-secondary);
+      font-size: 0.75rem;
+      transition: all 0.2s ease;
+      text-decoration: none;
+
+      &:hover {
+        background: rgba(99, 102, 241, 0.2);
+        color: var(--color-primary);
+      }
+    }
   }
 
   .sub-text {
