@@ -9,6 +9,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'update:selectedDate', value: string): void;
+  (e: 'toggle-sidebar'): void;
 }>();
 
 const isOpen = ref(false);
@@ -65,6 +66,9 @@ onUnmounted(() => {
 <template>
   <header class="topbar">
     <div class="topbar-left">
+      <button class="mobile-menu-toggle" @click="emit('toggle-sidebar')">
+        <i class="fa-solid fa-bars"></i>
+      </button>
       <h1 class="page-title">Dashboard</h1>
       <div class="date-filter">
         <div class="custom-dropdown" ref="dropdownRef">
@@ -108,10 +112,32 @@ onUnmounted(() => {
   padding: 2rem 3rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.02);
 
+  .topbar-left {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  .mobile-menu-toggle {
+    display: none;
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    margin-left: -0.5rem;
+    transition: color 0.2s ease;
+    
+    &:hover {
+      color: var(--color-primary);
+    }
+  }
+
   .page-title {
     font-size: 2rem;
     font-weight: 700;
-    margin: 0 0 0.25rem 0;
+    margin: 0;
     letter-spacing: -0.02em;
   }
 
@@ -268,6 +294,37 @@ onUnmounted(() => {
 
   @media (max-width: 1024px) {
     padding: 1.5rem;
+    
+    .mobile-menu-toggle {
+      display: block;
+    }
+    
+    .page-title {
+      font-size: 1.5rem;
+    }
+    
+    .connected-page {
+      .page-name {
+        display: none;
+      }
+    }
+  }
+  
+  @media (max-width: 600px) {
+    .topbar {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 1rem;
+    }
+    .topbar-left {
+      width: 100%;
+      flex-wrap: wrap;
+    }
+    .topbar-right {
+      width: 100%;
+      display: flex;
+      justify-content: flex-end;
+    }
   }
 }
 </style>

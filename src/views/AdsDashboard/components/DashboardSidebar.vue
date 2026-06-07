@@ -7,37 +7,46 @@ const userStore = useUserStore();
 const userName = computed(() => userStore.name || 'Administrador');
 const userAvatar = computed(() => `https://ui-avatars.com/api/?name=${encodeURIComponent(userName.value)}&background=6366f1&color=fff`);
 
+const props = defineProps<{
+  isOpen?: boolean;
+}>();
+
 const emit = defineEmits<{
   (e: 'logout'): void;
+  (e: 'close'): void;
 }>();
 </script>
 
 <template>
-  <aside class="sidebar">
+  <div v-if="isOpen" class="sidebar-backdrop" @click="emit('close')"></div>
+  <aside class="sidebar" :class="{ 'is-open': isOpen }">
     <div class="sidebar-header">
+      <button class="mobile-close-btn" @click="emit('close')">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
       <div class="logo-container">
         <div class="logo-glow"></div>
         <div class="logo">nemoPlace.</div>
       </div>
     </div>
     <nav class="sidebar-nav">
-      <router-link to="/dashboard" class="nav-item" exact-active-class="active">
+      <router-link to="/dashboard" class="nav-item" exact-active-class="active" @click="emit('close')">
         <span class="icon"><i class="fa-solid fa-chart-pie"></i></span>
         Resumen
       </router-link>
-      <router-link to="/dashboard/campaigns" class="nav-item" exact-active-class="active">
+      <router-link to="/dashboard/campaigns" class="nav-item" exact-active-class="active" @click="emit('close')">
         <span class="icon"><i class="fa-solid fa-chart-line"></i></span>
         Campañas
       </router-link>
-      <router-link to="/dashboard/conversations" class="nav-item" exact-active-class="active">
+      <router-link to="/dashboard/conversations" class="nav-item" exact-active-class="active" @click="emit('close')">
         <span class="icon"><i class="fa-regular fa-comments"></i></span>
         Conversaciones
       </router-link>
-      <router-link to="/dashboard/sales" class="nav-item" exact-active-class="active">
+      <router-link to="/dashboard/sales" class="nav-item" exact-active-class="active" @click="emit('close')">
         <span class="icon"><i class="fa-solid fa-cash-register"></i></span>
         Ventas
       </router-link>
-      <router-link to="/dashboard/settings" class="nav-item" exact-active-class="active">
+      <router-link to="/dashboard/settings" class="nav-item" exact-active-class="active" @click="emit('close')">
         <span class="icon"><i class="fa-solid fa-gear"></i></span>
         Configuración
       </router-link>
@@ -66,10 +75,26 @@ const emit = defineEmits<{
   display: flex;
   flex-direction: column;
   backdrop-filter: blur(20px);
-  z-index: 10;
+  z-index: 100;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
   .sidebar-header {
     padding: 2.5rem 1.5rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    .mobile-close-btn {
+      display: none;
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 1.5rem;
+      cursor: pointer;
+      padding: 0.5rem;
+      
+      &:hover { color: var(--text-primary); }
+    }
     
     .logo-container {
       position: relative;
@@ -220,16 +245,29 @@ const emit = defineEmits<{
   }
 
   @media (max-width: 1024px) {
-    width: 100%;
-    height: 60px;
-    flex-direction: row;
-    align-items: center;
-    border-right: none;
-    border-bottom: 1px solid var(--border-light);
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    transform: translateX(-100%);
+    background: rgba(10, 10, 12, 0.95);
+    
+    &.is-open {
+      transform: translateX(0);
+      box-shadow: 10px 0 30px rgba(0, 0, 0, 0.5);
+    }
 
-    .sidebar-header { padding: 0 1.5rem; }
-    .sidebar-nav { flex-direction: row; align-items: center; }
-    .sidebar-footer { display: none; }
+    .sidebar-header .mobile-close-btn {
+      display: block;
+    }
   }
+}
+
+.sidebar-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 90;
 }
 </style>

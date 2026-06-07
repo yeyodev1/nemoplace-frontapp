@@ -40,6 +40,7 @@ const selectedMonth = ref(savedMonth || currentMonthStr);
 const isRegisterModalOpen = ref(false);
 const isErrorModalOpen = ref(false);
 const errorMessage = ref('');
+const isSidebarOpen = ref(false);
 
 const {
   isLoggingIn,
@@ -168,13 +169,18 @@ const overallRoas = computed(() => {
 
 <template>
   <div class="dashboard-layout">
-    <DashboardSidebar @logout="handleLogout" />
+    <DashboardSidebar 
+      :isOpen="isSidebarOpen"
+      @close="isSidebarOpen = false"
+      @logout="handleLogout" 
+    />
 
     <main class="main-content">
       <DashboardTopbar 
         v-model:selectedDate="selectedMonth"
         :pageName="pageName"
         :pagePictureUrl="pagePictureUrl"
+        @toggle-sidebar="isSidebarOpen = !isSidebarOpen"
       />
 
       <div class="content-scroll">
