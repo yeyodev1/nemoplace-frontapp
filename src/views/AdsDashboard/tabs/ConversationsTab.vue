@@ -22,6 +22,8 @@ interface AdAttribution {
   adId: string;
   adName: string;
   campaignName: string;
+  creativeUrl?: string;
+  adLink?: string;
   totalSales: number;
   metaConversations: number;
   registeredConversations: number;
@@ -48,6 +50,8 @@ const attributionData = computed(() => {
         adId: ad.ad_id,
         adName: ad.ad_name || 'Desconocido',
         campaignName: ad.campaign_name || 'Desconocida',
+        creativeUrl: ad.creative_url,
+        adLink: ad.ad_link,
         totalSales: 0,
         metaConversations: metaConv,
         registeredConversations: 0,
@@ -171,12 +175,20 @@ const toggleExpand = (adId: string) => {
               <tr class="main-row" @click="toggleExpand(group.adId)">
                 <td>
                   <div class="ad-info">
-                    <span class="ad-badge" :class="group.adId === 'organic' ? 'organic' : 'meta-ad'">
+                    <div v-if="group.creativeUrl" class="ad-creative-thumbnail">
+                      <img :src="group.creativeUrl" :alt="group.adName" />
+                    </div>
+                    <span v-else class="ad-badge" :class="group.adId === 'organic' ? 'organic' : 'meta-ad'">
                       <i :class="group.adId === 'organic' ? 'fa-solid fa-seedling' : 'fa-brands fa-meta'"></i>
                     </span>
                     <div class="ad-names">
                       <span class="campaign">{{ group.campaignName }}</span>
-                      <span class="ad">{{ group.adName }}</span>
+                      <span class="ad">
+                        {{ group.adName }}
+                        <a v-if="group.adLink" :href="group.adLink" target="_blank" title="Ver Anuncio en Instagram/Facebook" class="ad-link-btn" @click.stop>
+                          <i class="fa-solid fa-external-link-alt"></i>
+                        </a>
+                      </span>
                     </div>
                   </div>
                 </td>
@@ -360,14 +372,31 @@ const toggleExpand = (adId: string) => {
   align-items: center;
   gap: 1rem;
 
+  .ad-creative-thumbnail {
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+
   .ad-badge {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+    border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1rem;
+    font-size: 1.1rem;
 
     &.meta-ad {
       background: rgba(6, 104, 225, 0.15);
@@ -383,6 +412,7 @@ const toggleExpand = (adId: string) => {
   .ad-names {
     display: flex;
     flex-direction: column;
+    gap: 0.15rem;
 
     .campaign {
       font-size: 0.75rem;
@@ -392,9 +422,31 @@ const toggleExpand = (adId: string) => {
     }
 
     .ad {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
       font-size: 0.95rem;
       font-weight: 600;
       color: var(--text-primary);
+
+      .ad-link-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--text-secondary);
+        font-size: 0.75rem;
+        transition: all 0.2s ease;
+        text-decoration: none;
+
+        &:hover {
+          background: rgba(99, 102, 241, 0.2);
+          color: var(--color-primary);
+        }
+      }
     }
   }
 }

@@ -76,7 +76,12 @@ const filteredInsights = computed(() => {
                   <i class="fa-solid fa-image"></i>
                 </div>
                 <div class="ad-names">
-                  <span class="ad-name">{{ ad.ad_name }}</span>
+                  <span class="ad-name">
+                    {{ ad.ad_name }}
+                    <a v-if="ad.ad_link" :href="ad.ad_link" target="_blank" title="Ver Anuncio en Instagram/Facebook" class="ad-link-btn" @click.stop>
+                      <i class="fa-solid fa-external-link-alt"></i>
+                    </a>
+                  </span>
                   <span class="campaign-name">{{ ad.campaign_name }}</span>
                 </div>
               </div>
@@ -233,8 +238,30 @@ const filteredInsights = computed(() => {
     gap: 0.25rem;
 
     .ad-name {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
       font-weight: 600;
       color: var(--text-primary);
+
+      .ad-link-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--text-secondary);
+        font-size: 0.75rem;
+        transition: all 0.2s ease;
+        text-decoration: none;
+
+        &:hover {
+          background: rgba(99, 102, 241, 0.2);
+          color: var(--color-primary);
+        }
+      }
     }
     
     .campaign-name {
