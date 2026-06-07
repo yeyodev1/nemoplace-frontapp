@@ -183,7 +183,7 @@ const roasChartOptions = {
 <style lang="scss" scoped>
 .charts-section {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1.5rem;
   margin-top: 1rem;
 }
@@ -196,6 +196,7 @@ const roasChartOptions = {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  min-width: 0; /* Prevent horizontal explosion */
   transition: all 0.3s ease;
 
   &:hover {

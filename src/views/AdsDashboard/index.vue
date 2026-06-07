@@ -251,8 +251,10 @@ const overallRoas = computed(() => {
 .dashboard-layout {
   display: flex;
   height: 100vh;
+  height: 100dvh;
   width: 100vw;
   max-width: 100%;
+  min-height: 0; /* Prevent layout explosion */
   background-color: var(--bg-dark);
   color: var(--text-primary);
   font-family: 'Inter', sans-serif;
@@ -262,9 +264,12 @@ const overallRoas = computed(() => {
 .main-content {
   flex: 1;
   min-width: 0;
+  min-height: 0; /* FIX FLEXBOX SCROLL BUG */
   display: flex;
   flex-direction: column;
   position: relative;
+  height: 100%;
+  overflow: hidden;
   
   &::before {
     content: '';
@@ -282,9 +287,11 @@ const overallRoas = computed(() => {
 .content-scroll {
   flex: 1;
   min-width: 0;
+  min-height: 0; /* FIX FLEXBOX SCROLL BUG */
   overflow-y: auto;
   overflow-x: hidden;
   padding: 2rem 3rem;
+  -webkit-overflow-scrolling: touch;
 
   &::-webkit-scrollbar {
     width: 8px;
@@ -325,9 +332,18 @@ const overallRoas = computed(() => {
 @media (max-width: 1024px) {
   .dashboard-layout {
     flex-direction: column;
+    height: auto;
+    min-height: 100vh;
+    overflow: visible;
+  }
+  .main-content {
+    height: auto;
+    overflow: visible;
   }
   .content-scroll {
     padding: 1.5rem;
+    overflow: visible;
+    flex: none;
   }
 }
 

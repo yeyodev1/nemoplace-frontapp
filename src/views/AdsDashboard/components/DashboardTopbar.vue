@@ -294,6 +294,12 @@ onUnmounted(() => {
 
   @media (max-width: 1024px) {
     padding: 1.5rem;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgba(10, 10, 12, 0.95);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     
     .mobile-menu-toggle {
       display: block;
