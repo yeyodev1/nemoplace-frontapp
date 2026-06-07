@@ -1,5 +1,7 @@
 <script setup lang="ts">
-defineProps<{
+import { ref, computed, onMounted, onUnmounted } from 'vue';
+
+const props = defineProps<{
   pageName?: string;
   pagePictureUrl?: string;
   selectedDate: string;
@@ -8,6 +10,56 @@ defineProps<{
 const emit = defineEmits<{
   (e: 'update:selectedDate', value: string): void;
 }>();
+
+const isOpen = ref(false);
+const dropdownRef = ref<HTMLElement | null>(null);
+
+const toggleDropdown = () => {
+  isOpen.value = !isOpen.value;
+};
+
+const selectMonth = (val: string) => {
+  emit('update:selectedDate', val);
+  isOpen.value = false;
+};
+
+// Generate last 12 months
+const monthOptions = computed(() => {
+  const options = [];
+  const formatter = new Intl.DateTimeFormat('es-ES', { month: 'long', year: 'numeric' });
+  const today = new Date();
+  
+  for (let i = 0; i < 12; i++) {
+    const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
+    const value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    const label = formatter.format(d);
+    // capitalize first letter
+    const capitalizedLabel = label.charAt(0).toUpperCase() + label.slice(1);
+    
+    options.push({ value, label: capitalizedLabel });
+  }
+  return options;
+});
+
+const currentLabel = computed(() => {
+  const opt = monthOptions.value.find(o => o.value === props.selectedDate);
+  return opt ? opt.label : props.selectedDate;
+});
+
+// Close dropdown on click outside
+const closeDropdown = (e: MouseEvent) => {
+  if (dropdownRef.value && !dropdownRef.value.contains(e.target as Node)) {
+    isOpen.value = false;
+  }
+};
+
+onMounted(() => {
+  document.addEventListener('click', closeDropdown);
+});
+
+onUnmounted(() => {
+  document.removeEventListener('click', closeDropdown);
+});
 </script>
 
 <template>
@@ -15,14 +67,26 @@ const emit = defineEmits<{
     <div class="topbar-left">
       <h1 class="page-title">Dashboard</h1>
       <div class="date-filter">
-        <div class="date-input-wrapper">
-          <i class="fa-regular fa-calendar date-icon"></i>
-          <input 
-            type="month"
-            :value="selectedDate" 
-            @input="emit('update:selectedDate', ($event.target as HTMLInputElement).value)"
-            class="date-input"
-          />
+        <div class="custom-dropdown" ref="dropdownRef">
+          <button class="dropdown-toggle" @click="toggleDropdown" :class="{ 'is-open': isOpen }">
+            <div class="toggle-content">
+              <i class="fa-regular fa-calendar date-icon"></i>
+              <span class="date-label">{{ currentLabel }}</span>
+            </div>
+            <i class="fa-solid fa-chevron-down caret"></i>
+          </button>
+          
+          <div v-if="isOpen" class="dropdown-menu">
+            <button 
+              v-for="opt in monthOptions" 
+              :key="opt.value"
+              class="dropdown-item"
+              :class="{ 'active': opt.value === selectedDate }"
+              @click="selectMonth(opt.value)"
+            >
+              {{ opt.label }}
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -54,42 +118,41 @@ const emit = defineEmits<{
   .date-filter {
     margin-top: 0.5rem;
     
-    .date-input-wrapper {
+    .custom-dropdown {
       position: relative;
-      display: inline-flex;
-      align-items: center;
+      display: inline-block;
 
-      .date-icon {
-        position: absolute;
-        left: 1rem;
-        color: var(--text-secondary);
-        pointer-events: none;
-      }
-
-      .date-input {
+      .dropdown-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1.5rem;
         background: rgba(255, 255, 255, 0.03);
         border: 1px solid rgba(255, 255, 255, 0.1);
         color: var(--text-primary);
-        padding: 0.5rem 1rem 0.5rem 2.5rem;
+        padding: 0.6rem 1.25rem;
         border-radius: var(--radius-full);
         font-family: inherit;
-        font-size: 0.85rem;
+        font-size: 0.9rem;
         font-weight: 500;
         cursor: pointer;
         transition: all 0.2s ease;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
+        min-width: 220px;
 
-        /* Estilos para el icono del calendario nativo en Webkit (Chrome/Safari) */
-        &::-webkit-calendar-picker-indicator {
-          filter: invert(1);
-          opacity: 0.5;
-          cursor: pointer;
-          transition: opacity 0.2s;
-          
-          &:hover {
-            opacity: 1;
+        .toggle-content {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+
+          .date-icon {
+            color: var(--text-secondary);
           }
+        }
+
+        .caret {
+          font-size: 0.8rem;
+          color: var(--text-secondary);
+          transition: transform 0.3s ease;
         }
 
         &:hover {
@@ -97,10 +160,65 @@ const emit = defineEmits<{
           border-color: rgba(255, 255, 255, 0.2);
         }
 
-        &:focus {
-          outline: none;
+        &.is-open {
           border-color: var(--color-primary);
           box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+          
+          .caret {
+            transform: rotate(180deg);
+          }
+        }
+      }
+
+      .dropdown-menu {
+        position: absolute;
+        top: calc(100% + 0.5rem);
+        left: 0;
+        width: 100%;
+        background: var(--bg-dark);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: var(--radius-lg);
+        padding: 0.5rem;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+        z-index: 100;
+        max-height: 300px;
+        overflow-y: auto;
+
+        &::-webkit-scrollbar {
+          width: 6px;
+        }
+        &::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        &::-webkit-scrollbar-thumb {
+          background: rgba(255, 255, 255, 0.1);
+          border-radius: 10px;
+        }
+
+        .dropdown-item {
+          display: block;
+          width: 100%;
+          text-align: left;
+          padding: 0.75rem 1rem;
+          background: transparent;
+          border: none;
+          color: var(--text-secondary);
+          font-family: inherit;
+          font-size: 0.9rem;
+          cursor: pointer;
+          border-radius: var(--radius-md);
+          transition: all 0.2s ease;
+
+          &:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-primary);
+          }
+
+          &.active {
+            background: rgba(99, 102, 241, 0.15);
+            color: var(--color-primary);
+            font-weight: 600;
+          }
         }
       }
     }

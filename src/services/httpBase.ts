@@ -43,7 +43,7 @@ class APIBase {
       'Content-Type': 'application/json',
     }
 
-    const accessToken = localStorage.getItem('access_token')
+    const accessToken = localStorage.getItem('access_token') || localStorage.getItem('token')
     if (accessToken) {
       headers['Authorization'] = `Bearer ${accessToken}`
     }

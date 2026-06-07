@@ -34,7 +34,8 @@ const salesStats = ref<any>({ totalRevenue: 0, totalConversations: 0, totalSales
 const pageName = ref<string | undefined>(undefined);
 const pagePictureUrl = ref<string | undefined>(undefined);
 const currentMonthStr = new Date().toISOString().slice(0, 7);
-const selectedMonth = ref(currentMonthStr);
+const savedMonth = localStorage.getItem('dashboard_selected_month');
+const selectedMonth = ref(savedMonth || currentMonthStr);
 
 const isRegisterModalOpen = ref(false);
 const isErrorModalOpen = ref(false);
@@ -136,7 +137,8 @@ onMounted(() => {
   initSDK();
 });
 
-watch(selectedMonth, () => {
+watch(selectedMonth, (newVal) => {
+  localStorage.setItem('dashboard_selected_month', newVal);
   if (isAuthenticated.value) {
     fetchDashboardData();
   }
