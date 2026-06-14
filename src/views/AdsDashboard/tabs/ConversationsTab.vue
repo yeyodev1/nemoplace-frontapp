@@ -73,6 +73,18 @@ const attributionData = computed(() => {
     customers: []
   });
 
+  // Grupo genérico para anuncios de WhatsApp
+  adMap.set('whatsapp_ad', {
+    adId: 'whatsapp_ad',
+    adName: 'Anuncios de WhatsApp (General)',
+    campaignName: 'Atribución General',
+    totalSales: 0,
+    metaConversations: 0,
+    registeredConversations: 0,
+    totalRevenue: 0,
+    customers: []
+  });
+
   if (props.sales) {
     props.sales.forEach(sale => {
       const key = sale.adId || 'organic';
@@ -178,8 +190,8 @@ const toggleExpand = (adId: string) => {
                     <div v-if="group.creativeUrl" class="ad-creative-thumbnail">
                       <img :src="group.creativeUrl" :alt="group.adName" />
                     </div>
-                    <span v-else class="ad-badge" :class="group.adId === 'organic' ? 'organic' : 'meta-ad'">
-                      <i :class="group.adId === 'organic' ? 'fa-solid fa-seedling' : 'fa-brands fa-meta'"></i>
+                    <span v-else class="ad-badge" :class="group.adId === 'organic' ? 'organic' : (group.adId === 'whatsapp_ad' ? 'whatsapp-ad' : 'meta-ad')">
+                      <i :class="group.adId === 'organic' ? 'fa-solid fa-seedling' : (group.adId === 'whatsapp_ad' ? 'fa-brands fa-whatsapp' : 'fa-brands fa-meta')"></i>
                     </span>
                     <div class="ad-names">
                       <span class="campaign">{{ group.campaignName }}</span>
@@ -407,6 +419,11 @@ const toggleExpand = (adId: string) => {
     &.meta-ad {
       background: rgba(6, 104, 225, 0.15);
       color: #4facfe;
+    }
+
+    &.whatsapp-ad {
+      background: rgba(37, 211, 102, 0.15);
+      color: #25D366;
     }
 
     &.organic {
