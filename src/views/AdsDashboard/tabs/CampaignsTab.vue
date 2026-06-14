@@ -28,6 +28,21 @@ const filteredInsights = computed(() => {
     (ad.campaign_name && ad.campaign_name.toLowerCase().includes(q))
   );
 });
+
+const expandedRow = ref<string | null>(null);
+
+const toggleExpand = (adId: string) => {
+  if (expandedRow.value === adId) {
+    expandedRow.value = null;
+  } else {
+    expandedRow.value = adId;
+  }
+};
+
+const getCustomersForAd = (adId: string) => {
+  if (!props.sales) return [];
+  return props.sales.filter(s => s.adId === adId).map(s => s.customerName || 'Cliente Anónimo');
+};
 </script>
 
 <template>
@@ -54,6 +69,7 @@ const filteredInsights = computed(() => {
             <th>Clics</th>
             <th>CPC</th>
             <th>ROAS</th>
+            <th></th>
           </tr>
         </thead>
         <tbody>
@@ -62,36 +78,60 @@ const filteredInsights = computed(() => {
               {{ searchQuery ? 'No se encontraron resultados para tu búsqueda.' : 'No hay anuncios activos en el rango de fechas seleccionado.' }}
             </td>
           </tr>
-          <tr v-for="ad in filteredInsights" :key="ad.ad_id">
-            <td>
-              <span class="status-badge" :class="ad.effective_status.toLowerCase()">
-                <span class="pulse" v-if="ad.effective_status === 'ACTIVE'"></span>
-                {{ ad.effective_status === 'ACTIVE' ? 'Activo' : 'Inactivo' }}
-              </span>
-            </td>
-            <td>
-              <div class="ad-info">
-                <img v-if="ad.creative_url" :src="ad.creative_url" alt="Creative" class="ad-thumbnail" />
-                <div class="ad-icon-placeholder" v-else>
-                  <i class="fa-solid fa-image"></i>
+          <template v-for="ad in filteredInsights" :key="ad.ad_id">
+            <tr class="main-row" @click="toggleExpand(ad.ad_id)">
+              <td>
+                <span class="status-badge" :class="ad.effective_status.toLowerCase()">
+                  <span class="pulse" v-if="ad.effective_status === 'ACTIVE'"></span>
+                  {{ ad.effective_status === 'ACTIVE' ? 'Activo' : 'Inactivo' }}
+                </span>
+              </td>
+              <td>
+                <div class="ad-info">
+                  <img v-if="ad.creative_url" :src="ad.creative_url" alt="Creative" class="ad-thumbnail" />
+                  <div class="ad-icon-placeholder" v-else>
+                    <i class="fa-solid fa-image"></i>
+                  </div>
+                  <div class="ad-names">
+                    <span class="ad-name">
+                      {{ ad.ad_name }}
+                      <a v-if="ad.ad_link" :href="ad.ad_link" target="_blank" title="Ver Anuncio en Instagram/Facebook" class="ad-link-btn" @click.stop>
+                        <i class="fa-solid fa-external-link-alt"></i>
+                      </a>
+                    </span>
+                    <span class="campaign-name">{{ ad.campaign_name }}</span>
+                  </div>
                 </div>
-                <div class="ad-names">
-                  <span class="ad-name">
-                    {{ ad.ad_name }}
-                    <a v-if="ad.ad_link" :href="ad.ad_link" target="_blank" title="Ver Anuncio en Instagram/Facebook" class="ad-link-btn" @click.stop>
-                      <i class="fa-solid fa-external-link-alt"></i>
-                    </a>
-                  </span>
-                  <span class="campaign-name">{{ ad.campaign_name }}</span>
+              </td>
+              <td class="numeric">{{ formatCurrency(ad.spend || 0) }}</td>
+              <td class="numeric">{{ formatNumber(ad.impressions || 0) }}</td>
+              <td class="numeric">{{ formatNumber(ad.clicks || 0) }}</td>
+              <td class="numeric">{{ formatCurrency(ad.cpc || 0) }}</td>
+              <td class="numeric highlight">{{ ad.purchase_roas?.[0]?.value ? parseFloat(ad.purchase_roas[0].value).toFixed(2) + 'x' : '0.00x' }}</td>
+              <td>
+                <button class="expand-btn" :class="{ active: expandedRow === ad.ad_id }">
+                  <i class="fa-solid fa-chevron-down"></i>
+                </button>
+              </td>
+            </tr>
+            <tr v-if="expandedRow === ad.ad_id" class="expanded-row">
+              <td colspan="8">
+                <div class="customers-list">
+                  <template v-if="getCustomersForAd(ad.ad_id).length > 0">
+                    <h4><i class="fa-solid fa-users"></i> Contactos de este anuncio (Cruzado con CRM/Ventas):</h4>
+                    <div class="tags-container">
+                      <span v-for="(customer, idx) in getCustomersForAd(ad.ad_id)" :key="idx" class="customer-tag">
+                        {{ customer }}
+                      </span>
+                    </div>
+                  </template>
+                  <template v-else>
+                    <p class="no-customers"><i class="fa-solid fa-circle-info"></i> No hay prospectos registrados manualmente para esta campaña todavía.</p>
+                  </template>
                 </div>
-              </div>
-            </td>
-            <td class="numeric">{{ formatCurrency(ad.spend || 0) }}</td>
-            <td class="numeric">{{ formatNumber(ad.impressions || 0) }}</td>
-            <td class="numeric">{{ formatNumber(ad.clicks || 0) }}</td>
-            <td class="numeric">{{ formatCurrency(ad.cpc || 0) }}</td>
-            <td class="numeric highlight">{{ ad.purchase_roas?.[0]?.value ? parseFloat(ad.purchase_roas[0].value).toFixed(2) + 'x' : '0.00x' }}</td>
-          </tr>
+              </td>
+            </tr>
+          </template>
         </tbody>
       </table>
     </div>
@@ -205,6 +245,78 @@ const filteredInsights = computed(() => {
     text-align: center;
     padding: 4rem;
     color: var(--text-secondary);
+  }
+
+  .main-row {
+    cursor: pointer;
+  }
+}
+
+.expand-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+  }
+
+  &.active {
+    transform: rotate(180deg);
+  }
+}
+
+.expanded-row {
+  background: rgba(0, 0, 0, 0.15);
+  
+  td {
+    padding: 0;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.05);
+  }
+
+  .customers-list {
+    padding: 1.5rem 2.5rem;
+    
+    h4 {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .tags-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+
+      .customer-tag {
+        background: rgba(99, 102, 241, 0.1);
+        border: 1px solid rgba(99, 102, 241, 0.2);
+        color: var(--text-primary);
+        padding: 0.4rem 1rem;
+        border-radius: var(--radius-full);
+        font-size: 0.85rem;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+
+        &::before {
+          content: "\f007";
+          font-family: "Font Awesome 6 Free";
+          font-weight: 900;
+          color: var(--color-primary);
+        }
+      }
+    }
   }
 }
 

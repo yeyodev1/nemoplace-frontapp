@@ -2,6 +2,8 @@
 import { ref, onMounted, computed, watch } from 'vue';
 import { usersApi } from '@/services/users.api';
 import { useUserStore } from '@/stores/user';
+import { useGhl } from '@/composables/useGhl';
+import ConnectGhlModal from '../components/ConnectGhlModal.vue';
 
 const userStore = useUserStore();
 
@@ -26,6 +28,15 @@ const isUpdating = ref(false);
 const isInviteModalOpen = ref(false);
 const isDeleteModalOpen = ref(false);
 const isEditModalOpen = ref(false);
+const isGhlModalOpen = ref(false);
+
+const { connectGhl, isConnecting } = useGhl();
+
+const handleConnectGhl = async (payload: { locationId: string, apiKey: string }) => {
+  await connectGhl(WORKSPACE_ID.value, payload.locationId, payload.apiKey);
+  isGhlModalOpen.value = false;
+  alert('GHL conectado exitosamente.');
+};
 
 const userToDelete = ref<string | null>(null);
 const userToEdit = ref<string | null>(null);
@@ -338,10 +349,28 @@ const cancelRemoveUser = () => {
         <p>Próximamente podrás editar el nombre, logotipo y configuraciones generales de tu espacio.</p>
       </div>
 
-      <div class="settings-panel placeholder-panel" v-else-if="activeSettingTab === 'integrations'">
-        <i class="fa-solid fa-plug fa-4x"></i>
-        <h3>Integraciones Adicionales</h3>
-        <p>Próximamente podrás conectar NemoPlace con herramientas de terceros como CRMs, Zapier y Make.</p>
+      <div class="settings-panel" v-else-if="activeSettingTab === 'integrations'">
+        <div class="panel-header">
+          <div class="panel-title">
+            <h3>Integraciones</h3>
+            <p>Conecta NemoPlace con tus herramientas favoritas.</p>
+          </div>
+        </div>
+        
+        <div class="integrations-list">
+          <div class="integration-card">
+            <div class="integration-info">
+              <div class="integration-icon ghl-icon">GHL</div>
+              <div>
+                <h4>Go High Level</h4>
+                <p>Sincroniza tus prospectos de anuncios directamente desde GHL.</p>
+              </div>
+            </div>
+            <button class="primary-button outline" @click="isGhlModalOpen = true">
+              Conectar
+            </button>
+          </div>
+        </div>
       </div>
 
       <div class="settings-panel placeholder-panel" v-else-if="activeSettingTab === 'billing'">
@@ -438,6 +467,14 @@ const cancelRemoveUser = () => {
         </div>
       </div>
     </div>
+
+    <!-- GHL Modal -->
+    <ConnectGhlModal
+      :isOpen="isGhlModalOpen"
+      :isConnecting="isConnecting"
+      @close="isGhlModalOpen = false"
+      @connect="handleConnectGhl"
+    />
   </div>
 </template>
 

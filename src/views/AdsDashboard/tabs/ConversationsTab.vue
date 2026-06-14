@@ -227,12 +227,18 @@ const toggleExpand = (adId: string) => {
       </div>
     </div>
 
-    <div class="crm-placeholder">
-      <div class="placeholder-content">
-        <i class="fa-brands fa-whatsapp placeholder-icon"></i>
-        <h2>Integración CRM Próximamente</h2>
-        <p>Pronto podrás conectar nemoPlace con tu CRM favorito para responder mensajes de WhatsApp, Instagram y Messenger sin salir del Dashboard.</p>
-        <button class="secondary-button" disabled>Conectar CRM (Próximamente)</button>
+    <div class="crm-integration-card">
+      <div class="card-content">
+        <div class="icon-wrapper">
+          <i class="fa-solid fa-users-viewfinder crm-icon"></i>
+        </div>
+        <div class="text-content">
+          <h2>Gestiona tus Prospectos</h2>
+          <p>Revisa todas tus conversaciones, administra tus leads y responde mensajes (WhatsApp, Instagram, Messenger) directamente desde tu CRM avanzado.</p>
+        </div>
+        <a href="https://crm.bakano.ec" target="_blank" class="btn-glow crm-button">
+          Abrir CRM <i class="fa-solid fa-arrow-up-right-from-square"></i>
+        </a>
       </div>
     </div>
   </div>
@@ -541,51 +547,86 @@ const toggleExpand = (adId: string) => {
   }
 }
 
-/* Placeholder original */
-.crm-placeholder {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+/* CRM Integration Card */
+.crm-integration-card {
   margin-top: 1rem;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.05) 100%);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: var(--radius-xl);
+  padding: 2.5rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  transition: transform 0.3s ease;
   
-  .placeholder-content {
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px dashed rgba(255, 255, 255, 0.1);
-    border-radius: var(--radius-lg);
-    padding: 3rem;
-    max-width: 600px;
-    text-align: center;
-    width: 100%;
-  }
-  
-  .placeholder-icon {
-    font-size: 3rem;
-    color: #25D366; 
-    margin-bottom: 1rem;
-    opacity: 0.9;
-  }
-  
-  h2 {
-    font-size: 1.5rem;
-    margin-bottom: 0.75rem;
-    color: var(--text-primary);
-  }
-  
-  p {
-    color: var(--text-secondary);
-    margin-bottom: 2rem;
-    line-height: 1.6;
+  &:hover {
+    transform: translateY(-2px);
+    border-color: rgba(99, 102, 241, 0.4);
   }
 
-  .secondary-button {
-    background: rgba(255, 255, 255, 0.05);
-    color: var(--text-secondary);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    padding: 0.75rem 1.5rem;
+  .card-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+
+    @media (max-width: 768px) {
+      flex-direction: column;
+      text-align: center;
+    }
+  }
+
+  .icon-wrapper {
+    width: 64px;
+    height: 64px;
+    background: linear-gradient(135deg, var(--color-primary), #8b5cf6);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+
+    .crm-icon {
+      font-size: 1.8rem;
+      color: white;
+    }
+  }
+
+  .text-content {
+    flex: 1;
+
+    h2 {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+      color: var(--text-primary);
+    }
+
+    p {
+      color: var(--text-secondary);
+      margin: 0;
+      line-height: 1.5;
+      font-size: 0.95rem;
+    }
+  }
+
+  .crm-button {
+    text-decoration: none;
+    background: var(--color-primary);
+    color: white;
+    padding: 1rem 2rem;
     border-radius: var(--radius-full);
-    font-weight: 500;
-    cursor: not-allowed;
-    opacity: 0.7;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    white-space: nowrap;
+    box-shadow: var(--shadow-glow);
+    transition: all 0.3s ease;
+
+    &:hover {
+      background: var(--color-primary-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 0 20px rgba(99, 102, 241, 0.6);
+    }
   }
 }
 
