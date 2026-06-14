@@ -38,6 +38,7 @@ const savedMonth = localStorage.getItem('dashboard_selected_month');
 const selectedMonth = ref(savedMonth || currentMonthStr);
 
 const isRegisterModalOpen = ref(false);
+const saleToEdit = ref<any>(null);
 const isErrorModalOpen = ref(false);
 const errorMessage = ref('');
 const isSidebarOpen = ref(false);
@@ -115,18 +116,38 @@ const handleLogout = () => {
   router.push('/login');
 };
 
+const openRegisterModal = (sale?: any) => {
+  saleToEdit.value = sale || null;
+  isRegisterModalOpen.value = true;
+};
+
 const handleRegisterSale = async (payload: any) => {
   try {
-    await salesApi.createSale({
-      workspaceId: WORKSPACE_ID.value,
-      ...payload
-    });
+    if (payload._id) {
+      await salesApi.updateSale(payload._id, payload);
+    } else {
+      await salesApi.createSale({
+        workspaceId: WORKSPACE_ID.value,
+        ...payload
+      });
+    }
     isRegisterModalOpen.value = false;
-    // Recargar los datos del dashboard para reflejar la nueva venta
+    // Recargar los datos del dashboard para reflejar la nueva venta o edición
     await fetchDashboardData();
   } catch (error) {
-    console.error('Error registrando la venta:', error);
-    errorMessage.value = 'Hubo un error al registrar la venta. Por favor intenta nuevamente.';
+    console.error('Error registrando/editando la venta:', error);
+    errorMessage.value = 'Hubo un error al guardar el registro. Por favor intenta nuevamente.';
+    isErrorModalOpen.value = true;
+  }
+};
+
+const handleDeleteSale = async (id: string) => {
+  try {
+    await salesApi.deleteSale(id);
+    await fetchDashboardData();
+  } catch (error) {
+    console.error('Error eliminando la venta:', error);
+    errorMessage.value = 'Hubo un error al eliminar el registro.';
     isErrorModalOpen.value = true;
   }
 };
@@ -203,7 +224,9 @@ const overallRoas = computed(() => {
             :totalConversations="salesStats.totalConversations"
             :insights="insights"
             :sales="sales"
-            @open-register-modal="isRegisterModalOpen = true"
+            @open-register-modal="openRegisterModal()"
+            @edit-sale="openRegisterModal"
+            @delete-sale="handleDeleteSale"
           />
         </template>
       </div>
@@ -212,6 +235,7 @@ const overallRoas = computed(() => {
     <RegisterSaleModal 
       :isOpen="isRegisterModalOpen"
       :insights="insights"
+      :saleToEdit="saleToEdit"
       @close="isRegisterModalOpen = false"
       @submit="handleRegisterSale"
     />
