@@ -20,6 +20,14 @@ class SalesApi extends APIBase {
   getSalesStats(workspaceId: string) {
     return this.get(`sales/${workspaceId}/stats`);
   }
+
+  updateSale(id: string, data: any) {
+    return this.put(`sales/${id}`, data);
+  }
+
+  deleteSale(id: string) {
+    return this.delete(`sales/${id}`);
+  }
 }
 
 export const salesApi = new SalesApi();
