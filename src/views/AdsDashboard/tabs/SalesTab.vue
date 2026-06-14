@@ -392,6 +392,42 @@ const handleDelete = (id: string) => {
   color: var(--color-primary);
 }
 
+.actions-cell {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.action-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.85rem;
+
+  &.edit-btn {
+    background: rgba(99, 102, 241, 0.1);
+    color: var(--color-primary);
+
+    &:hover {
+      background: rgba(99, 102, 241, 0.2);
+    }
+  }
+
+  &.delete-btn {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+
+    &:hover {
+      background: rgba(239, 68, 68, 0.2);
+    }
+  }
+}
+
 .empty-state {
   text-align: center;
   padding: 4rem 2rem !important;

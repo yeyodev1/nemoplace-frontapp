@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import AdAttributionSelect from './AdAttributionSelect.vue';
 import CustomDatePicker from './CustomDatePicker.vue';
 
 const props = defineProps<{
   isOpen: boolean;
   insights: any[]; // para sacar la lista de anuncios activos
+  saleToEdit?: any; // Venta a editar (si existe)
 }>();
 
 const emit = defineEmits<{
@@ -26,12 +27,36 @@ const activeAds = computed(() => {
   return props.insights.filter(ad => ad.effective_status === 'ACTIVE' || ad.ad_name);
 });
 
+const isEditMode = computed(() => !!props.saleToEdit);
+
+watch(() => props.isOpen, (newVal) => {
+  if (newVal) {
+    if (props.saleToEdit) {
+      amount.value = props.saleToEdit.amount;
+      customerName.value = props.saleToEdit.customerName || '';
+      adId.value = props.saleToEdit.adId || '';
+      conversationsGenerated.value = props.saleToEdit.conversationsGenerated || '';
+      // Format date for datetime-local input
+      saleDate.value = new Date(props.saleToEdit.saleDate).toISOString().slice(0, 16);
+      notes.value = props.saleToEdit.notes || '';
+    } else {
+      // Reset form
+      amount.value = '';
+      customerName.value = '';
+      adId.value = '';
+      conversationsGenerated.value = '';
+      saleDate.value = new Date().toISOString().slice(0, 16);
+      notes.value = '';
+    }
+  }
+});
+
 const handleSubmit = async () => {
   if (!amount.value || Number(amount.value) <= 0) return;
 
   isSubmitting.value = true;
 
-  const payload = {
+  const payload: any = {
     amount: Number(amount.value),
     customerName: customerName.value,
     adId: adId.value || undefined,
@@ -40,15 +65,12 @@ const handleSubmit = async () => {
     notes: notes.value
   };
 
+  if (isEditMode.value) {
+    payload._id = props.saleToEdit._id;
+  }
+
   emit('submit', payload);
 
-  // reset
-  amount.value = '';
-  customerName.value = '';
-  adId.value = '';
-  conversationsGenerated.value = '';
-  saleDate.value = new Date().toISOString().slice(0, 16);
-  notes.value = '';
   isSubmitting.value = false;
 };
 </script>
@@ -61,8 +83,8 @@ const handleSubmit = async () => {
       </button>
 
       <div class="modal-header">
-        <h2>Registrar Nueva Venta</h2>
-        <p>Añade una venta manualmente y atribúyela a una campaña específica.</p>
+        <h2>{{ isEditMode ? 'Editar Registro' : 'Registrar Nueva Venta' }}</h2>
+        <p>{{ isEditMode ? 'Modifica los detalles de esta interacción.' : 'Añade una venta manualmente y atribúyela a una campaña específica.' }}</p>
       </div>
 
       <form @submit.prevent="handleSubmit" class="register-form">
