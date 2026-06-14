@@ -12,6 +12,8 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'open-register-modal'): void;
+  (e: 'edit-sale', sale: any): void;
+  (e: 'delete-sale', id: string): void;
 }>();
 
 const formatCurrency = (val: string | number) => {
@@ -48,6 +50,12 @@ const filteredSales = computed(() => {
     (sale.notes && sale.notes.toLowerCase().includes(q))
   );
 });
+
+const handleDelete = (id: string) => {
+  if (confirm('¿Estás seguro de que deseas eliminar este registro? Esta acción no se puede deshacer.')) {
+    emit('delete-sale', id);
+  }
+};
 </script>
 
 <template>
@@ -110,11 +118,12 @@ const filteredSales = computed(() => {
             <th>Origen</th>
             <th>Monto</th>
             <th>Conversaciones</th>
+            <th>Acciones</th>
           </tr>
         </thead>
         <tbody>
           <tr v-if="filteredSales.length === 0">
-            <td colspan="5" class="empty-state">
+            <td colspan="6" class="empty-state">
               <div class="empty-icon"><i class="fa-solid fa-cash-register"></i></div>
               <h3>No hay ventas registradas</h3>
               <p>Aún no se han registrado ventas. Usa el botón "Registrar Venta" para comenzar.</p>
@@ -136,6 +145,14 @@ const filteredSales = computed(() => {
             </td>
             <td class="amount-cell">{{ formatCurrency(sale.amount) }}</td>
             <td>{{ sale.conversationsGenerated || '-' }}</td>
+            <td class="actions-cell">
+              <button class="action-btn edit-btn" @click="emit('edit-sale', sale)" title="Editar">
+                <i class="fa-solid fa-pen"></i>
+              </button>
+              <button class="action-btn delete-btn" @click="handleDelete(sale._id)" title="Eliminar">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </td>
           </tr>
         </tbody>
       </table>
