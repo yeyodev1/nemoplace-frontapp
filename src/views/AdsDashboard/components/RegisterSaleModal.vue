@@ -16,6 +16,8 @@ const emit = defineEmits<{
 
 const amount = ref<number | ''>('');
 const customerName = ref('');
+const servicioContratado = ref('');
+const ubicacion = ref('');
 const adId = ref('');
 const conversationsGenerated = ref<number | ''>('');
 const saleDate = ref(new Date().toISOString().slice(0, 16));
@@ -34,6 +36,8 @@ watch(() => props.isOpen, (newVal) => {
     if (props.saleToEdit) {
       amount.value = props.saleToEdit.amount;
       customerName.value = props.saleToEdit.customerName || '';
+      servicioContratado.value = props.saleToEdit.servicioContratado || '';
+      ubicacion.value = props.saleToEdit.ubicacion || '';
       adId.value = props.saleToEdit.adId || '';
       conversationsGenerated.value = props.saleToEdit.conversationsGenerated || '';
       // Format date for datetime-local input
@@ -43,6 +47,8 @@ watch(() => props.isOpen, (newVal) => {
       // Reset form
       amount.value = '';
       customerName.value = '';
+      servicioContratado.value = '';
+      ubicacion.value = '';
       adId.value = '';
       conversationsGenerated.value = '';
       saleDate.value = new Date().toISOString().slice(0, 16);
@@ -59,6 +65,8 @@ const handleSubmit = async () => {
   const payload: any = {
     amount: Number(amount.value),
     customerName: customerName.value,
+    servicioContratado: servicioContratado.value,
+    ubicacion: ubicacion.value,
     adId: adId.value || undefined,
     conversationsGenerated: Number(conversationsGenerated.value || 0),
     saleDate: new Date(saleDate.value).toISOString(),
@@ -96,6 +104,17 @@ const handleSubmit = async () => {
           <div class="form-group">
             <label>Cliente (Opcional)</label>
             <input type="text" v-model="customerName" placeholder="Nombre del cliente" />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Servicio Contratado</label>
+            <input type="text" v-model="servicioContratado" placeholder="Ej. Consultoría, Desarrollo, Marketing" />
+          </div>
+          <div class="form-group">
+            <label>Ubicación</label>
+            <input type="text" v-model="ubicacion" placeholder="Ej. Quito, Guayaquil, Online" />
           </div>
         </div>
 

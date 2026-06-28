@@ -47,6 +47,8 @@ const filteredSales = computed(() => {
   const q = searchQuery.value.toLowerCase();
   return props.sales.filter(sale => 
     (sale.customerName && sale.customerName.toLowerCase().includes(q)) || 
+    (sale.servicioContratado && sale.servicioContratado.toLowerCase().includes(q)) ||
+    (sale.ubicacion && sale.ubicacion.toLowerCase().includes(q)) ||
     (sale.notes && sale.notes.toLowerCase().includes(q))
   );
 });
@@ -115,15 +117,17 @@ const handleDelete = (id: string) => {
           <tr>
             <th>Fecha</th>
             <th>Cliente</th>
+            <th>Servicio</th>
+            <th>Ubicación</th>
             <th>Origen</th>
-            <th>Monto</th>
+            <th>Valor</th>
             <th>Conversaciones</th>
             <th>Acciones</th>
           </tr>
         </thead>
         <tbody>
           <tr v-if="filteredSales.length === 0">
-            <td colspan="6" class="empty-state">
+            <td colspan="8" class="empty-state">
               <div class="empty-icon"><i class="fa-solid fa-cash-register"></i></div>
               <h3>No hay ventas registradas</h3>
               <p>Aún no se han registrado ventas. Usa el botón "Registrar Venta" para comenzar.</p>
@@ -137,6 +141,8 @@ const handleDelete = (id: string) => {
                 <span class="customer-notes" v-if="sale.notes">{{ sale.notes }}</span>
               </div>
             </td>
+            <td>{{ sale.servicioContratado || '-' }}</td>
+            <td>{{ sale.ubicacion || '-' }}</td>
             <td>
               <span class="origin-badge" :class="sale.adId ? 'meta-ad' : 'organic'">
                 <i :class="sale.adId ? 'fa-brands fa-meta' : 'fa-solid fa-seedling'"></i>
